@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <sfdc:config name="Salesforce__Basic_Authentication" username="niloufar.sharifi.babaki@gmail.com" password="135211Khoone!" securityToken="M9jvtxxs4lk395TaUuxV39kMH" doc:name="Salesforce: Basic Authentication"/>
+    <sfdc:config name="Salesforce__Basic_Authentication1" username="niloufar.sharifi.babaki@gmail.com" password="135211Khoone!" securityToken="mhPE9oAbChL6PqAtAdYJMbhB" doc:name="Salesforce: Basic Authentication"/>
+    <sfdc:config name="Salesforce__Basic_Authentication2" username="niloufar.sharifi.babaki@gmail.com" password="135211Khoone!" securityToken="mhPE9oAbChL6PqAtAdYJMbhB" doc:name="Salesforce: Basic Authentication"/>
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="SAP-to-sf">
+        <file:inbound-endpoint path="src/main/resources/input/SAP" moveToDirectory="src/main/resources/output/SAP" responseTimeout="10000" doc:name="File"/>
+        <dw:transform-message metadata:id="04f52416-af35-4620-9c5b-132fa52371d3" doc:name="Transform Message">
+            <dw:input-payload/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	Name: payload01.firstname,
+	BillingStreet: payload01.surname,
+	Phone: payload01.phone,
+	Fax: payload01.email,
+	SAP_Id__c: payload01.SAP_Id
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <sfdc:upsert config-ref="Salesforce__Basic_Authentication1" externalIdFieldName="SAP_Id__c" type="Account" doc:name="Salesforce">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:upsert>
+    </flow>
+</mule>
